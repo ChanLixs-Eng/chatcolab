@@ -1,0 +1,13 @@
+{
+  "name": "chatcolab",
+  "version": "1.0.0",
+  "description": "Sistema de chat colaborativo en tiempo real con WebSocket",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "ws": "^8.16.0"
+  }
+}

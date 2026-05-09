@@ -1,0 +1,503 @@
+/* ============================================================
+   ChatColab - Estilos Dark Mode Neón
+   Paleta exacta de la especificación: morado → rosa
+   ============================================================ */
+
+/* ---------- Variables CSS (paleta exacta) ---------- */
+:root {
+  /* Fondos */
+  --bg-main: #0a0a0f;
+  --bg-surface: #13111c;
+  --bg-input: #1c1830;
+
+  /* Bordes */
+  --border-soft: #2a1f4a;
+  --border-strong: #3b2966;
+
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --gradient-header: linear-gradient(90deg, #1e1b3a 0%, #2d1b4e 100%);
+
+  /* Texto */
+  --text-primary: #ffffff;
+  --text-body: #e4e4f0;
+  --text-secondary: #8b8aa3;
+  --text-tertiary: #6b6985;
+  --text-accent: #a78bfa;
+
+  /* Estados */
+  --green-online: #22c55e;
+  --green-soft: #4ade80;
+  --red-offline: #f87171;
+  --cyan-accent: #06b6d4;
+  --pink-accent: #ec4899;
+  --orange-accent: #f97316;
+}
+
+/* ---------- Reset básico ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-body);
+  /* Ambient glow detrás de las cards */
+  background-image:
+    radial-gradient(circle at 15% 30%, rgba(139, 92, 246, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 85% 70%, rgba(236, 72, 153, 0.10) 0%, transparent 45%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ---------- Card base (compartida por login y chat) ---------- */
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
+}
+
+.card-login {
+  width: 100%;
+  max-width: 380px;
+}
+
+.card-chat {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  height: min(640px, 90vh);
+}
+
+/* ---------- Header común del card ---------- */
+.card-header {
+  background: var(--gradient-header);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  color: var(--text-accent);
+  font-size: 18px;
+}
+
+.header-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.badge-equipo {
+  background-color: rgba(167, 139, 250, 0.15);
+  color: var(--text-accent);
+  font-size: 10px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   PANTALLA 1 - LOGIN
+   ============================================================ */
+.login-body {
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+}
+
+/* Avatar circular grande con gradiente y glow */
+.avatar-bienvenida {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+}
+
+.avatar-bienvenida i {
+  color: var(--text-primary);
+  font-size: 28px;
+}
+
+.login-titulo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.login-subtitulo {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 22px;
+}
+
+/* Mensaje de error de conexión */
+.error-conexion {
+  background-color: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--red-offline);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+/* Input de nombre */
+.input-nombre {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.input-nombre::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input-nombre:focus {
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* Botón conectar */
+.btn-conectar {
+  width: 100%;
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-conectar:hover {
+  box-shadow: 0 0 28px rgba(139, 92, 246, 0.6);
+}
+
+.btn-conectar:active {
+  transform: scale(0.98);
+}
+
+.btn-conectar i {
+  font-size: 16px;
+}
+
+/* Hint debajo del botón */
+.login-hint {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pill-codigo {
+  background-color: rgba(167, 139, 250, 0.15);
+  color: var(--text-accent);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+}
+
+/* ============================================================
+   PANTALLA 2 - CHAT
+   ============================================================ */
+.chat-header {
+  background: var(--gradient-header);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-header-textos {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.chat-subtitulo {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Pill verde con punto pulsante */
+.pill-online {
+  background-color: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green-soft);
+  font-size: 12px;
+  max-width: 160px;
+}
+
+.pill-online #pill-nombre-usuario {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.punto-pulso {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--green-online);
+  box-shadow: 0 0 10px var(--green-online);
+  animation: pulso 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ---------- Área de mensajes ---------- */
+.mensajes {
+  flex: 1;
+  background-color: var(--bg-main);
+  padding: 18px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  /* Atmósfera con dos radial-gradients sutiles */
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 40%);
+}
+
+/* Scrollbar custom */
+.mensajes::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mensajes::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mensajes::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+/* ---------- Mensaje ajeno (izquierda) ---------- */
+.mensaje-ajeno {
+  align-self: flex-start;
+  max-width: 75%;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.avatar-usuario {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.burbuja-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nombre-remitente {
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.burbuja-ajena {
+  background-color: var(--bg-input);
+  color: var(--text-body);
+  padding: 9px 13px;
+  border-radius: 14px 14px 14px 2px;
+  border: 1px solid var(--border-soft);
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.hora-ajena {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+/* ---------- Mensaje propio (derecha) ---------- */
+.mensaje-propio {
+  align-self: flex-end;
+  max-width: 75%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.burbuja-propia {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  padding: 9px 13px;
+  border-radius: 14px 14px 2px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.meta-propia {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-right: 4px;
+}
+
+/* ---------- Mensaje del sistema (centro, pill) ---------- */
+.mensaje-sistema {
+  align-self: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.sistema-union {
+  color: var(--green-soft);
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.sistema-salida {
+  color: var(--red-offline);
+  background-color: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+/* ---------- Footer del chat (input + botón) ---------- */
+.chat-footer {
+  padding: 12px;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.input-mensaje {
+  flex: 1;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.input-mensaje::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input-mensaje:focus {
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.btn-enviar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-enviar:hover {
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.6);
+}
+
+.btn-enviar:active {
+  transform: scale(0.94);
+}
+
+.btn-enviar i {
+  font-size: 18px;
+}
+
+/* ---------- Pequeño helper ---------- */
+[hidden] {
+  display: none !important;
+}

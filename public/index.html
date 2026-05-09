@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatColab - Chat en tiempo real</title>
+
+  <!-- Tabler Icons via CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- =============================================== -->
+  <!-- Pantalla 1: LOGIN                                -->
+  <!-- =============================================== -->
+  <section id="pantalla-login" class="card card-login">
+    <!-- Header del card -->
+    <header class="card-header">
+      <div class="card-header-left">
+        <i class="ti ti-message-circle-bolt header-icon"></i>
+        <span class="header-title">ChatColab</span>
+      </div>
+      <span class="badge-equipo">BIT BY BIT</span>
+    </header>
+
+    <!-- Cuerpo del card -->
+    <div class="card-body login-body">
+      <!-- Avatar de bienvenida -->
+      <div class="avatar-bienvenida">
+        <i class="ti ti-bolt"></i>
+      </div>
+
+      <h1 class="login-titulo">Bienvenido al chat</h1>
+      <p class="login-subtitulo">Conéctate y empieza a colaborar</p>
+
+      <!-- Mensaje de error (oculto por defecto) -->
+      <div id="error-conexion" class="error-conexion" hidden></div>
+
+      <!-- Input nombre -->
+      <input
+        type="text"
+        id="input-nombre"
+        class="input-nombre"
+        placeholder="Tu nombre (opcional)"
+        maxlength="20"
+        autocomplete="off"
+      />
+
+      <!-- Botón conectar -->
+      <button id="btn-conectar" class="btn-conectar">
+        <i class="ti ti-plug-connected"></i>
+        <span>Conectar</span>
+      </button>
+
+      <!-- Hint -->
+      <p class="login-hint">
+        Sin nombre serás <span class="pill-codigo">Usuario_473</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- Pantalla 2: CHAT                                 -->
+  <!-- =============================================== -->
+  <section id="pantalla-chat" class="card card-chat" hidden>
+    <!-- Header del chat -->
+    <header class="chat-header">
+      <div class="chat-header-left">
+        <i class="ti ti-message-circle-bolt header-icon"></i>
+        <div class="chat-header-textos">
+          <span class="header-title">ChatColab</span>
+          <span id="contador-conectados" class="chat-subtitulo">1 conectado</span>
+        </div>
+      </div>
+
+      <!-- Pill verde con punto pulsante -->
+      <div class="pill-online">
+        <span class="punto-pulso"></span>
+        <span id="pill-nombre-usuario">Tu</span>
+      </div>
+    </header>
+
+    <!-- Área de mensajes -->
+    <div id="mensajes" class="mensajes" aria-live="polite"></div>
+
+    <!-- Footer con input de mensaje -->
+    <footer class="chat-footer">
+      <input
+        type="text"
+        id="input-mensaje"
+        class="input-mensaje"
+        placeholder="Escribe tu mensaje..."
+        maxlength="500"
+        autocomplete="off"
+      />
+      <button id="btn-enviar" class="btn-enviar" aria-label="Enviar mensaje">
+        <i class="ti ti-send"></i>
+      </button>
+    </footer>
+  </section>
+
+  <script src="client.js"></script>
+</body>
+</html>
