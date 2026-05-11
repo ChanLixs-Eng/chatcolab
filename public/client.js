@@ -32,7 +32,7 @@ let intentoReconexion = 0;       // exponente del backoff
 let reconexionTimer = null;
 
 const RECONEXION_BASE_MS = 500;
-const RECONEXION_MAX_MS  = 8000;
+const RECONEXION_MAX_MS = 8000;
 
 // Paleta de gradientes únicos para avatares de otros usuarios.
 const GRADIENTES_AVATAR = [
@@ -267,7 +267,7 @@ function mostrarError(texto) {
   errorConexion.hidden = false;
 }
 
-// ---------- Envío de mensajes ----------
+// ---------- Envio de mensajes ----------
 
 function enviarMensaje() {
   const texto = inputMensaje.value.trim();
