@@ -2,17 +2,20 @@
 // ChatColab - Cliente WebSocket
 // Equipo: Bit by Bit
 // ============================================================
-// Lógica del navegador: conecta al WebSocket, envía y recibe
-// mensajes JSON, y los renderiza en la pantalla del chat.
+// Conecta al WebSocket, envía y recibe mensajes JSON, y los
+// renderiza en la pantalla del chat. La identidad del usuario
+// la fija el servidor mediante un `id` único enviado en la
+// "bienvenida"; eso permite distinguir mensajes propios incluso
+// si dos usuarios eligen el mismo nombre.
 // ============================================================
 
-// ---------- Referencias al DOM ----------
 const pantallaLogin = document.getElementById('pantalla-login');
 const pantallaChat  = document.getElementById('pantalla-chat');
 
 const inputNombre   = document.getElementById('input-nombre');
 const btnConectar   = document.getElementById('btn-conectar');
 const errorConexion = document.getElementById('error-conexion');
+const pillCodigo    = document.querySelector('.pill-codigo');
 
 const pillNombreUsuario   = document.getElementById('pill-nombre-usuario');
 const contadorConectados  = document.getElementById('contador-conectados');
@@ -20,13 +23,18 @@ const mensajesContenedor  = document.getElementById('mensajes');
 const inputMensaje        = document.getElementById('input-mensaje');
 const btnEnviar           = document.getElementById('btn-enviar');
 
-// ---------- Estado ----------
-let ws = null;           // instancia del WebSocket
-let miNombre = '';        // nombre del usuario actual
-let usuariosConectados = 0; // contador local (estimación basada en eventos)
+let ws = null;
+let miId = null;                 // asignado por el server en "bienvenida"
+let miNombre = '';
+let usuariosConectados = 0;
+let conectando = false;          // guard contra doble conexión
+let intentoReconexion = 0;       // exponente del backoff
+let reconexionTimer = null;
 
-// Paleta de gradientes únicos para avatares de otros usuarios
-// (rosa→naranja, cyan→morado, etc.). Se asigna por hash del nombre.
+const RECONEXION_BASE_MS = 500;
+const RECONEXION_MAX_MS  = 8000;
+
+// Paleta de gradientes únicos para avatares de otros usuarios.
 const GRADIENTES_AVATAR = [
   'linear-gradient(135deg, #ec4899 0%, #f97316 100%)',
   'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)',
@@ -38,16 +46,10 @@ const GRADIENTES_AVATAR = [
 
 // ---------- Utilidades ----------
 
-// Obtiene la hora actual en formato HH:MM
-function horaActual() {
-  const ahora = new Date();
-  const hh = String(ahora.getHours()).padStart(2, '0');
-  const mm = String(ahora.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
+function nombreAleatorio() {
+  return `Usuario_${Math.floor(Math.random() * 900) + 100}`;
 }
 
-// Devuelve un gradiente determinístico según el nombre del usuario.
-// Permite que el mismo usuario tenga siempre el mismo color.
 function gradientePorNombre(nombre) {
   let hash = 0;
   for (let i = 0; i < nombre.length; i++) {
@@ -56,7 +58,6 @@ function gradientePorNombre(nombre) {
   return GRADIENTES_AVATAR[hash];
 }
 
-// Devuelve las iniciales (1 o 2 letras) del nombre para el avatar
 function iniciales(nombre) {
   const partes = nombre.trim().split(/[\s_]+/).filter(Boolean);
   if (partes.length === 0) return '?';
@@ -64,20 +65,22 @@ function iniciales(nombre) {
   return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
-// Hace scroll automático del contenedor de mensajes hacia abajo
 function scrollAlFinal() {
   mensajesContenedor.scrollTop = mensajesContenedor.scrollHeight;
 }
 
-// Actualiza el subtítulo "X conectados"
 function actualizarContador() {
-  const n = Math.max(1, usuariosConectados);
+  const n = Math.max(0, usuariosConectados);
   contadorConectados.textContent = `${n} conectado${n === 1 ? '' : 's'}`;
 }
 
-// ---------- Renderizado de mensajes ----------
+function habilitarEnvio(activar) {
+  inputMensaje.disabled = !activar;
+  btnEnviar.disabled = !activar;
+}
 
-// Mensaje de otro usuario (alineado a la izquierda con avatar)
+// ---------- Renderizado ----------
+
 function renderMensajeAjeno({ usuario, texto, hora }) {
   const wrap = document.createElement('div');
   wrap.className = 'mensaje-ajeno';
@@ -92,8 +95,6 @@ function renderMensajeAjeno({ usuario, texto, hora }) {
 
   const nombre = document.createElement('span');
   nombre.className = 'nombre-remitente';
-  // Color del nombre: usar el inicio del gradiente (CSS no puede leerlo,
-  // así que aplicamos el accent morado por simplicidad)
   nombre.style.color = '#a78bfa';
   nombre.textContent = usuario;
 
@@ -116,7 +117,6 @@ function renderMensajeAjeno({ usuario, texto, hora }) {
   scrollAlFinal();
 }
 
-// Mensaje propio (alineado a la derecha, con gradiente y glow)
 function renderMensajePropio({ usuario, texto, hora }) {
   const wrap = document.createElement('div');
   wrap.className = 'mensaje-propio';
@@ -136,52 +136,52 @@ function renderMensajePropio({ usuario, texto, hora }) {
   scrollAlFinal();
 }
 
-// Mensaje del sistema (pill verde para conexión, roja para desconexión)
 function renderMensajeSistema({ texto, evento }) {
   const div = document.createElement('div');
-  div.className = 'mensaje-sistema ' +
-    (evento === 'salida' ? 'sistema-salida' : 'sistema-union');
+  // Default neutro: si llega un evento desconocido no asumimos color de union.
+  let claseEvento = '';
+  if (evento === 'salida') claseEvento = 'sistema-salida';
+  else if (evento === 'union') claseEvento = 'sistema-union';
+  div.className = `mensaje-sistema ${claseEvento}`.trim();
   div.textContent = texto;
   mensajesContenedor.appendChild(div);
   scrollAlFinal();
 }
 
-// ---------- Conexión WebSocket ----------
+// ---------- Conexión ----------
 
 function conectar() {
-  // Determinar el nombre: si está vacío, generar Usuario_<100-999>
-  const nombreInput = inputNombre.value.trim();
-  miNombre = nombreInput || `Usuario_${Math.floor(Math.random() * 900) + 100}`;
+  if (conectando) return;
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+  conectando = true;
+  btnConectar.disabled = true;
 
-  // Construir la URL del WebSocket dinámicamente (mismo host del HTML)
+  // Si venimos de una reconexión, miNombre ya está fijado; en login lo leemos.
+  if (!miNombre) {
+    miNombre = inputNombre.value.trim() || nombreAleatorio();
+  }
+
   const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const url = `${protocolo}//${window.location.host}`;
 
-  // Limpiar mensaje de error anterior
   errorConexion.hidden = true;
   errorConexion.textContent = '';
 
   try {
     ws = new WebSocket(url);
-  } catch (err) {
+  } catch {
+    conectando = false;
+    btnConectar.disabled = false;
     mostrarError('No se pudo crear la conexión WebSocket.');
     return;
   }
 
-  // Conexión exitosa: mandamos el handshake con el nombre y cambiamos de pantalla
   ws.addEventListener('open', () => {
     ws.send(JSON.stringify({ tipo: 'union', usuario: miNombre }));
-
-    // Cambiar de pantalla: ocultar login, mostrar chat
-    pantallaLogin.hidden = true;
-    pantallaChat.hidden = false;
-
-    pillNombreUsuario.textContent = miNombre;
-    actualizarContador();
-    inputMensaje.focus();
   });
 
-  // Mensaje recibido del servidor
   ws.addEventListener('message', (event) => {
     let datos;
     try {
@@ -189,22 +189,35 @@ function conectar() {
     } catch {
       return;
     }
-    if (datos.tipo === 'contador') {
-      usuariosConectados = datos.cantidad;
+    if (datos.tipo === 'bienvenida') {
+      miId = datos.id;
+      conectando = false;
+      btnConectar.disabled = false;
+      intentoReconexion = 0;
+
+      if (pantallaLogin.hidden === false) {
+        pantallaLogin.hidden = true;
+        pantallaChat.hidden = false;
+      }
+      pillNombreUsuario.textContent = miNombre;
+      usuariosConectados = typeof datos.total === 'number' ? datos.total : 1;
       actualizarContador();
+      habilitarEnvio(true);
+      inputMensaje.focus();
       return;
     }
 
     if (datos.tipo === 'sistema') {
-      // Mantener un contador local aproximado de usuarios conectados
-      // Nota: El contador se actualiza vía mensajes 'contador' del servidor
+      if (typeof datos.total === 'number') {
+        usuariosConectados = datos.total;
+        actualizarContador();
+      }
       renderMensajeSistema(datos);
       return;
     }
 
     if (datos.tipo === 'mensaje') {
-      // Distinguir mensaje propio vs ajeno por el nombre
-      if (datos.usuario === miNombre) {
+      if (datos.id && datos.id === miId) {
         renderMensajePropio(datos);
       } else {
         renderMensajeAjeno(datos);
@@ -212,21 +225,41 @@ function conectar() {
     }
   });
 
-  // Error de conexión: mostrar al usuario
   ws.addEventListener('error', () => {
-    mostrarError('Error al conectar con el servidor. Verifica que esté encendido.');
+    if (pantallaChat.hidden) {
+      // Aún en login: el usuario puede leer el error allí.
+      mostrarError('Error al conectar con el servidor. Verifica que esté encendido.');
+    }
+    // En chat el aviso lo da el handler de 'close' (más fiable).
   });
 
-  // Conexión cerrada inesperadamente
   ws.addEventListener('close', () => {
-    if (!pantallaChat.hidden) {
-      // Si estábamos chateando, mostrar pill de reconexión perdida
+    const estabaEnChat = !pantallaChat.hidden;
+    conectando = false;
+    btnConectar.disabled = false;
+    habilitarEnvio(false);
+
+    if (estabaEnChat) {
       renderMensajeSistema({
-        texto: '🔴 Conexión perdida con el servidor',
+        texto: '🔴 Conexión perdida. Reconectando…',
         evento: 'salida'
       });
+      programarReconexion();
     }
   });
+}
+
+function programarReconexion() {
+  if (reconexionTimer) clearTimeout(reconexionTimer);
+  const delay = Math.min(
+    RECONEXION_MAX_MS,
+    RECONEXION_BASE_MS * 2 ** intentoReconexion
+  );
+  intentoReconexion++;
+  reconexionTimer = setTimeout(() => {
+    reconexionTimer = null;
+    conectar();
+  }, delay);
 }
 
 function mostrarError(texto) {
@@ -238,35 +271,30 @@ function mostrarError(texto) {
 
 function enviarMensaje() {
   const texto = inputMensaje.value.trim();
-  // No enviar mensajes vacíos (HU-04)
   if (!texto) return;
-  // No enviar si la conexión no está abierta
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-  ws.send(JSON.stringify({
-    tipo: 'mensaje',
-    texto: texto,
-    hora: horaActual()
-  }));
-
+  ws.send(JSON.stringify({ tipo: 'mensaje', texto }));
   inputMensaje.value = '';
   inputMensaje.focus();
 }
 
-// ---------- Listeners de eventos UI ----------
+// ---------- Listeners ----------
 
-// Botón conectar
 btnConectar.addEventListener('click', conectar);
 
-// Tecla Enter en el input de nombre = conectar
 inputNombre.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') conectar();
 });
 
-// Botón enviar
 btnEnviar.addEventListener('click', enviarMensaje);
 
-// Tecla Enter en el input de mensaje = enviar
 inputMensaje.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') enviarMensaje();
 });
+
+// Estado inicial: input de mensaje deshabilitado hasta que haya bienvenida.
+habilitarEnvio(false);
+
+// Hint dinámico: que el ejemplo "Usuario_XXX" coincida con lo que se generará.
+if (pillCodigo) pillCodigo.textContent = nombreAleatorio();

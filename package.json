@@ -4,7 +4,8 @@
   "description": "Sistema de chat colaborativo en tiempo real con WebSocket",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test --test-isolation=none test/*.test.js"
   },
   "dependencies": {
     "express": "^4.19.0",
