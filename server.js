@@ -60,6 +60,11 @@ wss.on('connection', (ws) => {
         evento: 'union',
         texto: `🟢 ${ws.usuario} se ha unido`
       });
+      // Enviar el contador actualizado a todos
+      broadcast({
+        tipo: 'contador',
+        cantidad: clientes.size
+      });
       return;
     }
 
@@ -87,6 +92,11 @@ wss.on('connection', (ws) => {
         texto: `🔴 ${ws.usuario} ha salido`
       });
     }
+    // Enviar el contador actualizado a todos
+    broadcast({
+      tipo: 'contador',
+      cantidad: clientes.size
+    });
   });
 
   // Manejar errores del socket sin crashear el servidor

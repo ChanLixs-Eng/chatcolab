@@ -188,13 +188,15 @@ function conectar() {
       datos = JSON.parse(event.data);
     } catch {
       return;
+    if (datos.tipo === 'contador') {
+      usuariosConectados = datos.cantidad;
+      actualizarContador();
+      return;
     }
 
     if (datos.tipo === 'sistema') {
       // Mantener un contador local aproximado de usuarios conectados
-      if (datos.evento === 'union') usuariosConectados++;
-      if (datos.evento === 'salida') usuariosConectados--;
-      actualizarContador();
+      // Nota: El contador se actualiza vía mensajes 'contador' del servidor
       renderMensajeSistema(datos);
       return;
     }
