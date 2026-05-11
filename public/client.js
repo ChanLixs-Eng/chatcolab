@@ -21,7 +21,7 @@ const inputMensaje        = document.getElementById('input-mensaje');
 const btnEnviar           = document.getElementById('btn-enviar');
 
 // ---------- Estado ----------
-let ws = null;            // instancia del WebSocket
+let ws = null;           // instancia del WebSocket
 let miNombre = '';        // nombre del usuario actual
 let usuariosConectados = 0; // contador local (estimación basada en eventos)
 
