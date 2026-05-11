@@ -148,7 +148,7 @@ chatcolab/
 | 3 | Olivera Salazar Jose Maximiliano   | HU-03 — Servidor WebSocket        |
 | 4 | Salvatierra Vargas Beymar          | HU-04 — Envío/recepción mensajes  |
 | 5 | Mamani Olivera Jhaneth             | HU-05 — Historial visible         |
-| 6 | Moscoso Pierola Monserrat          | HU-06 — Notificaciones conex.     |
+| 6 | Moscoso Piérola Monserrat          | HU-06 — Notificaciones conex.     |
 | 7 | Mercado Mejia Dhery                | HU-07 — Documentación             |
 
 ---
