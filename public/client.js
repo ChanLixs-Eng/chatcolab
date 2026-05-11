@@ -188,6 +188,7 @@ function conectar() {
       datos = JSON.parse(event.data);
     } catch {
       return;
+    }
     if (datos.tipo === 'contador') {
       usuariosConectados = datos.cantidad;
       actualizarContador();
