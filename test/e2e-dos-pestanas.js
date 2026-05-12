@@ -101,6 +101,23 @@ async function main() {
   bruno.ws.close();
   await sleep(120);
 
+  console.log(`\n${gray}── escenario 7: pestaña tardía recibe el historial ──${reset}`);
+  const carla = await pestania('Carla');
+  await sleep(80);
+  const histBienvenida = carla.estado.recibidos.find((m) => m.tipo === 'bienvenida');
+  if (Array.isArray(histBienvenida.historial)) {
+    console.log(
+      `[Carla] bienvenida.historial → ${histBienvenida.historial.length} mensajes anteriores:`
+    );
+    for (const m of histBienvenida.historial) {
+      console.log(`    · ${m.usuario}: "${m.texto.slice(0, 40)}${m.texto.length > 40 ? '…' : ''}" @${m.hora}`);
+    }
+  } else {
+    console.log('[Carla] (sin historial)');
+  }
+  carla.ws.close();
+  await sleep(80);
+
   // Resumen
   console.log(`\n${gray}── resumen ──${reset}`);
   const mensajesAna = ana.estado.recibidos.filter((m) => m.tipo === 'mensaje');
