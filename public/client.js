@@ -30,6 +30,8 @@ let usuariosConectados = 0
 let conectando = false // guard contra doble conexión
 let intentoReconexion = 0 // exponente del backoff
 let reconexionTimer = null
+// Generado una sola vez para que el hint del login y el nombre real coincidan.
+const nombreSugerido = `Usuario_${Math.floor(Math.random() * 900) + 100}`
 
 const RECONEXION_BASE_MS = 500
 const RECONEXION_MAX_MS = 8000
@@ -45,10 +47,6 @@ const GRADIENTES_AVATAR = [
 ]
 
 // ---------- Utilidades ----------
-
-function nombreAleatorio() {
-  return `Usuario_${Math.floor(Math.random() * 900) + 100}`
-}
 
 function gradientePorNombre(nombre) {
   let hash = 0
@@ -163,7 +161,7 @@ function conectar() {
 
   // Si venimos de una reconexión, miNombre ya está fijado; en login lo leemos.
   if (!miNombre) {
-    miNombre = inputNombre.value.trim() || nombreAleatorio()
+    miNombre = inputNombre.value.trim() || nombreSugerido
   }
 
   const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -317,4 +315,4 @@ inputMensaje.addEventListener('keydown', (e) => {
 habilitarEnvio(false)
 
 // Hint dinámico: que el ejemplo "Usuario_XXX" coincida con lo que se generará.
-if (pillCodigo) pillCodigo.textContent = nombreAleatorio()
+if (pillCodigo) pillCodigo.textContent = nombreSugerido
