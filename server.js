@@ -1,20 +1,3 @@
-// ============================================================
-// ChatColab - Servidor Express + WebSocket
-// Equipo: Bit by Bit
-// ============================================================
-// Sirve archivos estáticos desde /public y mantiene un servidor
-// WebSocket en el mismo puerto. Hace broadcast de los mensajes.
-//
-// Protocolo:
-//   cliente → server:
-//     { tipo: 'union',   usuario }
-//     { tipo: 'mensaje', texto }
-//   server → cliente:
-//     { tipo: 'bienvenida', id, usuario, total }   (unicast)
-//     { tipo: 'sistema',    evento, texto, total } (broadcast)
-//     { tipo: 'mensaje',    id, usuario, texto, hora } (broadcast)
-// ============================================================
-
 const express = require('express')
 const http = require('http')
 const { WebSocketServer } = require('ws')
