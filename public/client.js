@@ -30,8 +30,27 @@ let usuariosConectados = 0
 let conectando = false // guard contra doble conexión
 let intentoReconexion = 0 // exponente del backoff
 let reconexionTimer = null
+let primeraConexion = true // false tras la primera bienvenida: evita repintar historial
 // Generado una sola vez para que el hint del login y el nombre real coincidan.
 const nombreSugerido = `Usuario_${Math.floor(Math.random() * 900) + 100}`
+
+// Conjunto de ids que han sido "míos" en esta pestaña. Cada reconexión recibe
+// un id nuevo del server, así que guardamos todos los previos para reconocer
+// nuestros mensajes en el historial tras recargar o reconectar.
+const idsPropios = new Set()
+const STORAGE_KEY = 'chatcolab.idsPropios'
+try {
+  const raw = sessionStorage.getItem(STORAGE_KEY)
+  if (raw) for (const id of JSON.parse(raw)) idsPropios.add(id)
+} catch {}
+
+function recordarIdPropio(id) {
+  if (!id) return
+  idsPropios.add(id)
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...idsPropios]))
+  } catch {}
+}
 
 const RECONEXION_BASE_MS = 500
 const RECONEXION_MAX_MS = 8000
@@ -192,6 +211,7 @@ function conectar() {
     }
     if (datos.tipo === 'bienvenida') {
       miId = datos.id
+      recordarIdPropio(miId)
       conectando = false
       btnConectar.disabled = false
       intentoReconexion = 0
@@ -204,25 +224,28 @@ function conectar() {
       usuariosConectados = typeof datos.total === 'number' ? datos.total : 1
       actualizarContador()
 
-      // Renderizar historial previo
-      if (Array.isArray(datos.historial) && datos.historial.length > 0) {
-        // Separador visual
+      // Solo pintar el historial en la PRIMERA conexión de esta pestaña.
+      // En reconexiones automáticas el contenedor ya tiene los mensajes; volver
+      // a pintarlos provocaría duplicados encadenados.
+      if (primeraConexion && Array.isArray(datos.historial) && datos.historial.length > 0) {
         const sep = document.createElement('div')
-        sep.className = 'mensaje-sistema sistema-union'
+        sep.className = 'mensaje-sistema'
         sep.textContent = `── ${datos.historial.length} mensajes anteriores ──`
-
         mensajesContenedor.appendChild(sep)
 
-        // Pintar mensajes anteriores
         datos.historial.forEach((msg) => {
-          if (msg.id === miId) {
+          if (idsPropios.has(msg.id)) {
             renderMensajePropio(msg)
           } else {
             renderMensajeAjeno(msg)
           }
         })
+      } else if (!primeraConexion) {
+        // Aviso al usuario tras una reconexión.
+        renderMensajeSistema({ texto: '🟢 Reconectado', evento: 'union' })
       }
 
+      primeraConexion = false
       habilitarEnvio(true)
       inputMensaje.focus()
       return

@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const WebSocket = require('ws');
 
-const { server, wss, clientes } = require('../server.js');
+const { server, wss, clientes, historial, MAX_HISTORIAL } = require('../server.js');
 
 let baseHttp;
 let baseWs;
@@ -160,6 +160,7 @@ after(async () => {
 beforeEach(async () => {
   for (const c of clientes) c.terminate();
   await waitFor(() => clientes.size === 0);
+  historial.length = 0; // evitar test pollution con el historial global
 });
 
 // ---------- Suites ----------
@@ -493,6 +494,53 @@ describe('Desconexión', () => {
     b.close();
     await waitClose(b);
     await waitFor(() => clientes.size === 0);
+  });
+});
+
+describe('Historial de mensajes', () => {
+  test('la bienvenida incluye un array historial', async () => {
+    const a = await openClient();
+    const bv = await unirse(a, 'Hist');
+    assert.ok(Array.isArray(bv.historial), 'historial debe ser array');
+    await closeAll(a);
+  });
+
+  test('historial preserva el orden cronológico', async () => {
+    const a = await openClient();
+    await unirse(a, 'A');
+
+    for (const texto of ['uno', 'dos', 'tres']) {
+      a.send(JSON.stringify({ tipo: 'mensaje', texto }));
+      await sleep(70); // respetar rate limit (50 ms)
+    }
+
+    const b = await openClient();
+    const bv = await unirse(b, 'B');
+
+    const textos = bv.historial.map((m) => m.texto);
+    assert.deepEqual(textos, ['uno', 'dos', 'tres']);
+
+    await closeAll(a, b);
+  });
+
+  test(`historial se limita a ${MAX_HISTORIAL} mensajes y descarta los más antiguos`, async () => {
+    const a = await openClient();
+    await unirse(a, 'Burst');
+
+    const N = MAX_HISTORIAL + 5;
+    for (let i = 0; i < N; i++) {
+      a.send(JSON.stringify({ tipo: 'mensaje', texto: `m${i}` }));
+      await sleep(60);
+    }
+
+    const b = await openClient();
+    const bv = await unirse(b, 'Late');
+
+    assert.equal(bv.historial.length, MAX_HISTORIAL);
+    assert.equal(bv.historial[0].texto, `m${N - MAX_HISTORIAL}`);
+    assert.equal(bv.historial[MAX_HISTORIAL - 1].texto, `m${N - 1}`);
+
+    await closeAll(a, b);
   });
 });
 

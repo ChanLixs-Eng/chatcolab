@@ -151,4 +151,4 @@ if (require.main === module) {
   })
 }
 
-module.exports = { app, server, wss, clientes, broadcast }
+module.exports = { app, server, wss, clientes, broadcast, historial, MAX_HISTORIAL }
